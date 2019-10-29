@@ -32,10 +32,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -74,7 +76,12 @@ func main() {
 
 	//l := &listener{lis}
 
-	s := grpc.NewServer()
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(grpc_zap.UnaryServerInterceptor(logger)),
+	)
 
 	http.Handle("/helloworld.Greeter/", s)
 	pb.RegisterGreeterServer(s, &server{})
