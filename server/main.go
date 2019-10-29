@@ -1,5 +1,5 @@
 /*
- *
+ * based on
  * Copyright 2015 gRPC authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +23,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"net"
-	"net/http"
 	"os"
-	"sync/atomic"
 	"time"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
@@ -45,20 +40,15 @@ type server struct {
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	n := rand.Intn(90)
+	// simulate doing some work
+	n := rand.Intn(10)
 	time.Sleep(time.Duration(100+n) * time.Millisecond)
 	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
 
-func handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		n := rand.Intn(90)
-		time.Sleep(time.Duration(10+n) * time.Millisecond)
-		_, _ = fmt.Fprintln(w, "OK")
-	})
-}
-
 func main() {
+	log.SetFlags(0)
+
 	log.Println("starting container")
 
 	rand.Seed(time.Now().UnixNano())
@@ -72,47 +62,10 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	//l := &listener{lis}
-
 	s := grpc.NewServer()
-
-	http.Handle("/helloworld.Greeter/", s)
 	pb.RegisterGreeterServer(s, &server{})
 
-	http.Handle("/ping", handler())
-
-	var current int64
-
-	l := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddInt64(&current, 1)
-		defer func() {
-			atomic.AddInt64(&current, -1)
-		}()
-		log.Printf("request %s %d", r.RemoteAddr, atomic.LoadInt64(&current))
-		http.DefaultServeMux.ServeHTTP(w, r)
-	})
-
-	h := h2c.NewHandler(l, &http2.Server{})
-
-	svr := &http.Server{
-		Handler: h,
-	}
-	svr.SetKeepAlivesEnabled(false)
-
-	if err := svr.Serve(lis); err != nil {
+	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-}
-
-type listener struct {
-	net.Listener
-}
-
-func (l *listener) Accept() (net.Conn, error) {
-	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, err
-	}
-	//log.Printf("accept %s %s", c.RemoteAddr(), c.LocalAddr())
-	return c, nil
 }
