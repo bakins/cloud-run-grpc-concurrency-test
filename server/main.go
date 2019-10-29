@@ -88,7 +88,7 @@ func main() {
 		defer func() {
 			atomic.AddInt64(&current, -1)
 		}()
-		log.Printf("remote addr %s %d", r.RemoteAddr, atomic.LoadInt64(&current))
+		log.Printf("request %s %d", r.RemoteAddr, atomic.LoadInt64(&current))
 		http.DefaultServeMux.ServeHTTP(w, r)
 	})
 
