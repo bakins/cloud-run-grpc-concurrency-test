@@ -42,24 +42,20 @@ func main() {
 		address    string
 		workers    int
 		iterations int
+		useHTTP    bool
 	)
 	flag.StringVar(&address, "url", "http://localhost:8080", "url endpoint - must include schema")
 	flag.IntVar(&workers, "workers", 1, "concurrent workers")
 	flag.IntVar(&iterations, "iterations", 1, "iterations per worker")
+	flag.BoolVar(&useHTTP, "http", false, "non-grpc HTTP test")
 	flag.Parse()
-
-	// Contact the server and print out its response.
-	name := defaultName
-	if len(flag.Args()) > 1 {
-		name = flag.Args()[1]
-	}
-
-	var options []grpc.DialOption
 
 	u, err := url.Parse(address)
 	if err != nil {
 		log.Fatalf("failed to parse url: %v", err)
 	}
+
+	var options []grpc.DialOption
 
 	if u.Scheme == "https" {
 		options = append(options, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
@@ -76,8 +72,6 @@ func main() {
 		}
 	}
 	addr := net.JoinHostPort(u.Hostname(), port)
-
-	// Set up a connection to the server.
 	conn, err := grpc.Dial(addr, options...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -91,13 +85,15 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+
 			ctx := context.Background()
 			for j := 0; j < iterations; j++ {
 				j := j
-				_, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+				_, err := c.SayHello(ctx, &pb.HelloRequest{Name: defaultName})
 				if err != nil {
-					log.Fatalf("could not greet: %d %d %v", i, j, err)
+					log.Printf("could not greet: %d %d %v", i, j, err)
 				}
+				//time.Sleep(time.Millisecond * 100)
 				//log.Printf("%d %d %s", i, j, r.GetMessage())
 			}
 		}()
