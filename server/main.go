@@ -24,8 +24,10 @@ package main
 import (
 	"context"
 	"log"
+	"math/rand"
 	"net"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
@@ -38,10 +40,14 @@ type server struct {
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	n := rand.Intn(90)
+	time.Sleep(time.Duration(10+n) * time.Millisecond)
+	time.Sleep(time.Second)
 	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

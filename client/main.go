@@ -94,11 +94,11 @@ func main() {
 			ctx := context.Background()
 			for j := 0; j < iterations; j++ {
 				j := j
-				r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+				_, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 				if err != nil {
-					log.Printf("could not greet: %d %d %v", i, j, err)
+					log.Fatalf("could not greet: %d %d %v", i, j, err)
 				}
-				log.Printf("%d %d %s", i, j, r.GetMessage())
+				//log.Printf("%d %d %s", i, j, r.GetMessage())
 			}
 		}()
 	}
