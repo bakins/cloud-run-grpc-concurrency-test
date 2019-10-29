@@ -22,16 +22,19 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -56,34 +59,31 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to parse url: %v", err)
 	}
-	/*
-		var options []grpc.DialOption
 
+	var options []grpc.DialOption
+
+	if u.Scheme == "https" {
+		options = append(options, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	} else {
+		options = append(options, grpc.WithInsecure())
+	}
+
+	port := u.Port()
+	if port == "" {
 		if u.Scheme == "https" {
-			options = append(options, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+			port = "443"
 		} else {
-			options = append(options, grpc.WithInsecure())
+			port = "80"
 		}
+	}
 
-
-		port := u.Port()
-		if port == "" {
-			if u.Scheme == "https" {
-				port = "443"
-			} else {
-				port = "80"
-			}
-		}
-
-		addr := net.JoinHostPort(u.Hostname(), port)
-		conn, err := grpc.Dial(addr, options...)
-		if err != nil {
-			log.Fatalf("did not connect: %v", err)
-		}
-		defer conn.Close()
-		c := pb.NewGreeterClient(conn)
-
-	*/
+	addr := net.JoinHostPort(u.Hostname(), port)
+	conn, err := grpc.Dial(addr, options...)
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	_ = pb.NewGreeterClient(conn)
 
 	c := &client{
 		target: u.String(),
@@ -155,19 +155,28 @@ func (c *client) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloR
 
 	var helloResponse pb.HelloReply
 
+	fmt.Println(resp.Header)
+	fmt.Println(resp.Trailer)
+
 	if err := Read(resp.Body, &helloResponse); err != nil {
 		fmt.Println(resp.Header)
+		fmt.Println(resp.Trailer)
 		return nil, fmt.Errorf("failed to read response: %v", err)
 	}
 
 	// must read until EOF to ensure trailers are read.
 	// there should be no data left before the trailers.
-	if _, err = resp.Body.Read([]byte{}); err != io.EOF {
-		return nil, fmt.Errorf("unexpected error: %v", err)
-	}
+	//if _, err = resp.Body.Read([]byte{}); err != io.EOF {
+	//	return nil, fmt.Errorf("unexpected error: %v", err)
+	//}
 
 	status := 0
 	grpcStatus := resp.Trailer.Get("Grpc-Status")
+	if grpcStatus == "" {
+		// try header
+		grpcStatus = resp.Header.Get("Grpc-Status")
+	}
+
 	if grpcStatus != "" {
 		s, err := strconv.Atoi(grpcStatus)
 		if err != nil {

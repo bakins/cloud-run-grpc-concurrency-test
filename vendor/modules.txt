@@ -1,29 +1,9 @@
 # github.com/golang/protobuf v1.3.2
-github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
-github.com/golang/protobuf/ptypes/struct
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
-github.com/grpc-ecosystem/go-grpc-middleware
-github.com/grpc-ecosystem/go-grpc-middleware/logging
-github.com/grpc-ecosystem/go-grpc-middleware/logging/zap
-github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap
-github.com/grpc-ecosystem/go-grpc-middleware/tags
-github.com/grpc-ecosystem/go-grpc-middleware/tags/zap
-# go.uber.org/atomic v1.4.0
-go.uber.org/atomic
-# go.uber.org/multierr v1.2.0
-go.uber.org/multierr
-# go.uber.org/zap v1.11.0
-go.uber.org/zap
-go.uber.org/zap/buffer
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
-go.uber.org/zap/zapcore
 # golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2

@@ -94,7 +94,12 @@ func main() {
 
 	h := h2c.NewHandler(l, &http2.Server{})
 
-	if err := http.Serve(lis, h); err != nil {
+	svr := &http.Server{
+		Handler: h,
+	}
+	svr.SetKeepAlivesEnabled(false)
+
+	if err := svr.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
