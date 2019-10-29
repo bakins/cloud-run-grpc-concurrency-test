@@ -29,6 +29,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -80,8 +81,14 @@ func main() {
 
 	http.Handle("/ping", handler())
 
+	var current int64
+
 	l := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("remote addr %s", r.RemoteAddr)
+		atomic.AddInt64(&current, 1)
+		defer func() {
+			atomic.AddInt64(&current, -1)
+		}()
+		log.Printf("remote addr %s %d", r.RemoteAddr, atomic.LoadInt64(&current))
 		http.DefaultServeMux.ServeHTTP(w, r)
 	})
 

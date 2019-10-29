@@ -15,6 +15,6 @@ gcloud beta run deploy "$NAME" \
     --region=us-east1 \
     --allow-unauthenticated \
     --platform=managed \
-    --concurrency=1 \
+    --concurrency=16 \
     --timeout=30s
 
