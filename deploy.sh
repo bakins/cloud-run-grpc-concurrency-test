@@ -2,7 +2,6 @@
 set -eux
 
 NAME=grpc-concurrency-test
-PROJECT=rsg-login-sandbox
 VERSION=$(git rev-parse --short HEAD)
 
 TAG=us.gcr.io/$PROJECT/$NAME:$VERSION
@@ -15,6 +14,6 @@ gcloud beta run deploy "$NAME" \
     --region=us-east1 \
     --allow-unauthenticated \
     --platform=managed \
-    --concurrency=16 \
+    --concurrency=64 \
     --timeout=30s
 

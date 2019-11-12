@@ -52,6 +52,7 @@ func main() {
 	log.Println("starting container")
 
 	rand.Seed(time.Now().UnixNano())
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

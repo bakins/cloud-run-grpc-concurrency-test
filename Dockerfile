@@ -1,4 +1,4 @@
-FROM golang:1.13.2 AS builder
+FROM golang:1.13.4 AS builder
 
 ARG CGO_ENABLED=0
 ARG GOOS=linux
